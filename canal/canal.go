@@ -64,6 +64,7 @@ func NewCanal(cfg *Config) (*Canal, error) {
 	c.dumpDoneCh = make(chan struct{})
 	c.eventHandler = &DummyEventHandler{}
 
+	// 缓存Tables信息
 	c.tables = make(map[string]*schema.Table)
 	if c.cfg.DiscardNoMetaRowEvent {
 		c.errorTablesGetTime = make(map[string]time.Time)
@@ -72,6 +73,7 @@ func NewCanal(cfg *Config) (*Canal, error) {
 
 	var err error
 
+	// 是否Dumper数据
 	if err = c.prepareDumper(); err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -190,6 +192,7 @@ func (c *Canal) run() error {
 		c.cancel()
 	}()
 
+	// 如果指定了参数就dump
 	err := c.tryDump()
 	close(c.dumpDoneCh)
 
@@ -404,6 +407,7 @@ func (c *Canal) prepareSyncer() error {
 		ReadTimeout:     c.cfg.ReadTimeout,
 	}
 
+	// 创建syncer
 	c.syncer = replication.NewBinlogSyncer(cfg)
 
 	return nil
@@ -414,6 +418,7 @@ func (c *Canal) Execute(cmd string, args ...interface{}) (rr *mysql.Result, err 
 	c.connLock.Lock()
 	defer c.connLock.Unlock()
 
+	// 通过Retry,....
 	retryNum := 3
 	for i := 0; i < retryNum; i++ {
 		if c.conn == nil {

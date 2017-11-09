@@ -5,6 +5,7 @@ import (
 	"github.com/siddontang/go-mysql/replication"
 )
 
+// 将MySQL的各种binlog event抽象成为各种Callback
 type EventHandler interface {
 	OnRotate(roateEvent *replication.RotateEvent) error
 	OnDDL(nextPos mysql.Position, queryEvent *replication.QueryEvent) error

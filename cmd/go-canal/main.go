@@ -74,6 +74,7 @@ func main() {
 
 	c.SetEventHandler(&handler{})
 
+	// 开始处理Binlog
 	startPos := mysql.Position{
 		Name: *startName,
 		Pos:  uint32(*startPos),
@@ -106,7 +107,7 @@ type handler struct {
 
 func (h *handler) OnRow(e *canal.RowsEvent) error {
 	fmt.Printf("%v\n", e)
-
+	// 如何细化呢?
 	return nil
 }
 

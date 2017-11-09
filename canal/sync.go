@@ -66,6 +66,7 @@ func (c *Canal) runSyncBinlog() error {
 		// TODO: If we meet any DDL query, we must save too.
 		switch e := ev.Event.(type) {
 		case *replication.RotateEvent:
+			// 记录binlog的位置
 			pos.Name = string(e.NextLogName)
 			pos.Pos = uint32(e.Position)
 			log.Infof("rotate binlog to %s", pos)
@@ -112,10 +113,13 @@ func (c *Canal) runSyncBinlog() error {
 				return errors.Trace(err)
 			}
 		case *replication.QueryEvent:
+			// DDL
 			if mb := checkRenameTable(e); mb != nil {
 				if len(mb[1]) == 0 {
 					mb[1] = e.Schema
 				}
+
+				// 删除表结构
 				savePos = true
 				force = true
 				c.ClearTableCache(mb[1], mb[2])
@@ -208,6 +212,8 @@ func (c *Canal) CatchMasterPos(timeout time.Duration) error {
 	return c.WaitUntilPos(pos, timeout)
 }
 
+// 表被修改了
+// 表被Rename了
 func checkRenameTable(e *replication.QueryEvent) [][]byte {
 	var mb = [][]byte{}
 	if mb = expAlterTable.FindSubmatch(e.Query); mb != nil {
